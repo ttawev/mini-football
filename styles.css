@@ -42,8 +42,10 @@ button {
 }
 
 .game-shell {
-  position: relative;
+  position: fixed;
+  inset: 0;
   isolation: isolate;
+  transform-origin: center;
 }
 
 #gameCanvas {
@@ -277,7 +279,23 @@ button {
 }
 
 @media (orientation: portrait) and (max-width: 760px) {
+  .game-shell {
+    left: 50%;
+    top: 50%;
+    width: 100vh;
+    height: 100vw;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
   .rotate-prompt {
-    display: grid;
+    display: none;
+  }
+
+  .hud {
+    min-width: min(360px, calc(100vh - 24px));
+  }
+
+  .controls {
+    inset: auto max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-top));
   }
 }

@@ -554,10 +554,12 @@ function updateHud(dt) {
 function resize() {
   const width = window.innerWidth;
   const height = window.innerHeight;
-  renderer.setSize(width, height, false);
-  camera.aspect = width / height;
-  const isLandscape = width > height;
-  camera.position.set(isLandscape ? LANDSCAPE_CAMERA_X : -46, isLandscape ? 40 : 47, 0);
+  const forceLandscape = width < height && width <= 760;
+  const renderWidth = forceLandscape ? height : width;
+  const renderHeight = forceLandscape ? width : height;
+  renderer.setSize(renderWidth, renderHeight, false);
+  camera.aspect = renderWidth / renderHeight;
+  camera.position.set(LANDSCAPE_CAMERA_X, renderHeight < 520 ? 39 : 42, 0);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }
