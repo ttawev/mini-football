@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Mini Football 4v4 Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <canvas id="gameCanvas" aria-label="3D прототип мини-футбола 4 на 4"></canvas>
+
+      <section class="hud" aria-label="Матч">
+        <div class="scoreboard">
+          <span class="team team-home">Синие</span>
+          <strong id="scoreText">0 : 0</strong>
+          <span class="team team-away">Красные</span>
+        </div>
+        <div class="match-meta">
+          <span id="timerText">02:00</span>
+          <span id="statusText">Матч начался</span>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Управление">
+        <div class="stick" id="stick" aria-hidden="true">
+          <span id="stickKnob"></span>
+        </div>
+        <div class="action-pad">
+          <button id="switchButton" type="button">Смена</button>
+          <button id="kickButton" type="button">Удар</button>
+        </div>
+      </section>
+
+      <aside class="help-panel" aria-label="Подсказки">
+        <span>WASD / стрелки</span>
+        <span>Пробел - удар</span>
+        <span>Q - смена игрока</span>
+      </aside>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
