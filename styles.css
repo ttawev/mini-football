@@ -55,7 +55,8 @@ button {
 
 .hud,
 .controls,
-.help-panel {
+.help-panel,
+.rotate-prompt {
   position: fixed;
   z-index: 5;
   user-select: none;
@@ -191,6 +192,34 @@ button {
   font-weight: 800;
 }
 
+.rotate-prompt {
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(49, 168, 255, 0.2), transparent 34%),
+    rgba(5, 9, 14, 0.92);
+  text-align: center;
+  backdrop-filter: blur(16px);
+}
+
+.rotate-prompt div {
+  display: grid;
+  gap: 8px;
+  max-width: 280px;
+}
+
+.rotate-prompt strong {
+  font-size: 1.5rem;
+}
+
+.rotate-prompt span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 @media (max-width: 680px) {
   .help-panel {
     display: none;
@@ -207,7 +236,48 @@ button {
   }
 
   .controls {
-    transform: scale(0.88);
+    transform: scale(0.82);
     transform-origin: bottom center;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .hud {
+    top: max(8px, env(safe-area-inset-top));
+    min-width: min(360px, 46vw);
+  }
+
+  .scoreboard {
+    gap: 10px;
+    padding: 7px 10px;
+  }
+
+  .scoreboard strong {
+    font-size: 1.45rem;
+  }
+
+  .match-meta {
+    padding: 5px 10px;
+    font-size: 0.74rem;
+  }
+
+  .controls {
+    inset: auto max(18px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+    transform: none;
+  }
+
+  .stick {
+    width: clamp(104px, 19vw, 132px);
+  }
+
+  .action-pad button {
+    width: clamp(74px, 13vw, 98px);
+    height: clamp(50px, 10vw, 62px);
+  }
+}
+
+@media (orientation: portrait) and (max-width: 760px) {
+  .rotate-prompt {
+    display: grid;
   }
 }

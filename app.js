@@ -15,6 +15,7 @@ const TEAM_AWAY = "away";
 const PLAYER_RADIUS = 0.62;
 const BALL_RADIUS = 0.34;
 const MATCH_SECONDS = 120;
+const LANDSCAPE_CAMERA_X = -38;
 
 const keys = new Set();
 const input = { x: 0, y: 0, kick: false };
@@ -36,7 +37,7 @@ scene.background = new THREE.Color(0x90bed6);
 scene.fog = new THREE.Fog(0x90bed6, 46, 82);
 
 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
-camera.position.set(0, 42, -33);
+camera.position.set(LANDSCAPE_CAMERA_X, 42, 0);
 camera.lookAt(0, 0, 0);
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0x476b5a, 2.3);
@@ -229,24 +230,25 @@ function resetPositions(scoredBy = null) {
 }
 
 function updateInputFromKeys() {
-  let x = 0;
-  let y = 0;
-  if (keys.has("arrowleft") || keys.has("a")) x -= 1;
-  if (keys.has("arrowright") || keys.has("d")) x += 1;
-  if (keys.has("arrowup") || keys.has("w")) y += 1;
-  if (keys.has("arrowdown") || keys.has("s")) y -= 1;
-  if (x || y) {
-    const length = Math.hypot(x, y);
-    keyboardInput.x = x / length;
-    keyboardInput.y = y / length;
+  let screenX = 0;
+  let screenY = 0;
+  if (keys.has("arrowleft") || keys.has("a")) screenX -= 1;
+  if (keys.has("arrowright") || keys.has("d")) screenX += 1;
+  if (keys.has("arrowup") || keys.has("w")) screenY += 1;
+  if (keys.has("arrowdown") || keys.has("s")) screenY -= 1;
+  if (screenX || screenY) {
+    const length = Math.hypot(screenX, screenY);
+    keyboardInput.x = screenX / length;
+    keyboardInput.y = screenY / length;
   } else {
     keyboardInput.x = 0;
     keyboardInput.y = 0;
   }
 
   const useKeyboard = Math.hypot(keyboardInput.x, keyboardInput.y) > 0;
-  input.x = useKeyboard ? -keyboardInput.x : -stickInput.x;
-  input.y = useKeyboard ? keyboardInput.y : stickInput.y;
+  const source = useKeyboard ? keyboardInput : stickInput;
+  input.x = source.y;
+  input.y = source.x;
 }
 
 function updateSelectedPlayer() {
@@ -554,7 +556,9 @@ function resize() {
   const height = window.innerHeight;
   renderer.setSize(width, height, false);
   camera.aspect = width / height;
-  camera.position.set(0, height < 620 ? 39 : 42, height < 620 ? -37 : -33);
+  const isLandscape = width > height;
+  camera.position.set(isLandscape ? LANDSCAPE_CAMERA_X : -46, isLandscape ? 40 : 47, 0);
+  camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }
 
