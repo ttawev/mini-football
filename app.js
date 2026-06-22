@@ -15,7 +15,8 @@ const TEAM_AWAY = "away";
 const PLAYER_RADIUS = 0.62;
 const BALL_RADIUS = 0.34;
 const MATCH_SECONDS = 120;
-const LANDSCAPE_CAMERA_X = -38;
+const CAMERA_Y = 42;
+const CAMERA_Z = -33;
 
 const keys = new Set();
 const input = { x: 0, y: 0, kick: false };
@@ -37,7 +38,8 @@ scene.background = new THREE.Color(0x90bed6);
 scene.fog = new THREE.Fog(0x90bed6, 46, 82);
 
 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
-camera.position.set(LANDSCAPE_CAMERA_X, 42, 0);
+camera.up.set(1, 0, 0);
+camera.position.set(0, CAMERA_Y, CAMERA_Z);
 camera.lookAt(0, 0, 0);
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0x476b5a, 2.3);
@@ -559,7 +561,8 @@ function resize() {
   const renderHeight = forceLandscape ? width : height;
   renderer.setSize(renderWidth, renderHeight, false);
   camera.aspect = renderWidth / renderHeight;
-  camera.position.set(LANDSCAPE_CAMERA_X, renderHeight < 520 ? 39 : 42, 0);
+  camera.up.set(1, 0, 0);
+  camera.position.set(0, renderHeight < 520 ? 39 : CAMERA_Y, renderHeight < 520 ? -37 : CAMERA_Z);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }
