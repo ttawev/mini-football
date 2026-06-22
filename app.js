@@ -15,8 +15,8 @@ const TEAM_AWAY = "away";
 const PLAYER_RADIUS = 0.62;
 const BALL_RADIUS = 0.34;
 const MATCH_SECONDS = 120;
-const CAMERA_Y = 42;
-const CAMERA_Z = -33;
+const CAMERA_Y = 36;
+const CAMERA_Z = -28;
 
 const keys = new Set();
 const input = { x: 0, y: 0, kick: false };
@@ -431,18 +431,43 @@ function updatePossession(dt) {
   return false;
 }
 
-function checkGoal() {
-  const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
-  if (ball.pos.y < -FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
-    score.away += 1;
-    setStatus("\u0413\u043e\u043b \u043a\u0440\u0430\u0441\u043d\u044b\u0445!", 3);
-    resetPositions(TEAM_AWAY);
-    return true;
-  }
-  if (ball.pos.y > FIELD.length / 2 + BALL_RADIUS && inGoalMouth) {
+function scoreGoal(team) {
+  if (team === TEAM_HOME) {
     score.home += 1;
     setStatus("\u0413\u043e\u043b \u0441\u0438\u043d\u0438\u0445!", 3);
     resetPositions(TEAM_HOME);
+  } else {
+    score.away += 1;
+    setStatus("\u0413\u043e\u043b \u043a\u0440\u0430\u0441\u043d\u044b\u0445!", 3);
+    resetPositions(TEAM_AWAY);
+  }
+}
+
+function checkGoal(previousPos = null) {
+  const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
+  if (previousPos) {
+    const topGoalLine = FIELD.length / 2;
+    const bottomGoalLine = -FIELD.length / 2;
+    const crossedTop = previousPos.y <= topGoalLine && ball.pos.y >= topGoalLine;
+    const crossedBottom = previousPos.y >= bottomGoalLine && ball.pos.y <= bottomGoalLine;
+
+    if (crossedTop || crossedBottom) {
+      const goalLine = crossedTop ? topGoalLine : bottomGoalLine;
+      const progress = (goalLine - previousPos.y) / (ball.pos.y - previousPos.y || 1);
+      const crossingX = previousPos.x + (ball.pos.x - previousPos.x) * progress;
+      if (Math.abs(crossingX) < FIELD.goalWidth / 2) {
+        scoreGoal(crossedTop ? TEAM_HOME : TEAM_AWAY);
+        return true;
+      }
+    }
+  }
+
+  if (ball.pos.y < -FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
+    scoreGoal(TEAM_AWAY);
+    return true;
+  }
+  if (ball.pos.y > FIELD.length / 2 + BALL_RADIUS && inGoalMouth) {
+    scoreGoal(TEAM_HOME);
     return true;
   }
   return false;
@@ -489,6 +514,7 @@ function resolveBall(dt) {
     return;
   }
 
+  const previousBallPos = ball.pos.clone();
   ball.pos.addScaledVector(ball.vel, dt);
   ball.vel.multiplyScalar(Math.pow(0.18, dt));
 
@@ -497,7 +523,7 @@ function resolveBall(dt) {
     ball.vel.x *= -0.72;
   }
 
-  if (checkGoal()) return;
+  if (checkGoal(previousBallPos)) return;
 
   const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
   if (ball.pos.y < -FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
@@ -562,7 +588,7 @@ function resize() {
   renderer.setSize(renderWidth, renderHeight, false);
   camera.aspect = renderWidth / renderHeight;
   camera.up.set(1, 0, 0);
-  camera.position.set(0, renderHeight < 520 ? 39 : CAMERA_Y, renderHeight < 520 ? -37 : CAMERA_Z);
+  camera.position.set(0, renderHeight < 520 ? 34 : CAMERA_Y, renderHeight < 520 ? -26 : CAMERA_Z);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }

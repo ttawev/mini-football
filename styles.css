@@ -127,7 +127,7 @@ button {
 }
 
 .controls {
-  inset: auto max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  inset: auto max(16px, env(safe-area-inset-right)) max(34px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -264,12 +264,12 @@ button {
   }
 
   .controls {
-    inset: auto max(18px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+    inset: auto max(18px, env(safe-area-inset-right)) max(34px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
     transform: none;
   }
 
   .stick {
-    width: clamp(104px, 19vw, 132px);
+    width: clamp(92px, 16vw, 116px);
   }
 
   .action-pad button {
@@ -296,6 +296,6 @@ button {
   }
 
   .controls {
-    inset: auto max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-top));
+    inset: auto max(14px, env(safe-area-inset-bottom)) max(36px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-top));
   }
 }
