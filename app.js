@@ -261,13 +261,8 @@ function updateInputFromKeys() {
 
   const useKeyboard = Math.hypot(keyboardInput.x, keyboardInput.y) > 0;
   const source = useKeyboard ? keyboardInput : stickInput;
-  if (isForcedLandscapeMode()) {
-    input.x = -source.x;
-    input.y = source.y;
-  } else {
-    input.x = source.y;
-    input.y = source.x;
-  }
+  input.x = source.y;
+  input.y = source.x;
 }
 
 function updateSelectedPlayer() {
@@ -630,35 +625,53 @@ function loop(timestamp) {
 
 function setupStick() {
   let pointerId = null;
+  let originX = 0;
+  let originY = 0;
 
   function setStickFromEvent(event) {
     const rect = stick.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const max = rect.width * 0.32;
-    const dx = clamp(event.clientX - centerX, -max, max);
-    const dy = clamp(event.clientY - centerY, -max, max);
-    const length = Math.hypot(dx, dy);
-    const normalized = length > max ? max / length : 1;
-    const x = dx * normalized;
-    const y = dy * normalized;
+    const max = rect.width * 0.46;
+    const rawDx = event.clientX - originX;
+    const rawDy = event.clientY - originY;
+    const dx = isForcedLandscapeMode() ? rawDy : rawDx;
+    const dy = isForcedLandscapeMode() ? -rawDx : rawDy;
+    const distance = Math.hypot(dx, dy);
+    const scale = distance > max ? max / distance : 1;
+    const x = dx * scale;
+    const y = dy * scale;
+    const normalizedX = x / max;
+    const normalizedY = -y / max;
+    const deadZone = 0.08;
     stickKnob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-    stickInput.x = x / max;
-    stickInput.y = -y / max;
+    if (Math.hypot(normalizedX, normalizedY) < deadZone) {
+      stickInput.x = 0;
+      stickInput.y = 0;
+    } else {
+      stickInput.x = normalizedX;
+      stickInput.y = normalizedY;
+    }
   }
 
   stick.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
     pointerId = event.pointerId;
+    originX = event.clientX;
+    originY = event.clientY;
     stick.setPointerCapture(pointerId);
-    setStickFromEvent(event);
+    stickInput.x = 0;
+    stickInput.y = 0;
+    stickKnob.style.transform = "translate(-50%, -50%)";
   });
 
   stick.addEventListener("pointermove", (event) => {
-    if (event.pointerId === pointerId) setStickFromEvent(event);
+    if (event.pointerId !== pointerId) return;
+    event.preventDefault();
+    setStickFromEvent(event);
   });
 
   function release(event) {
     if (event.pointerId !== pointerId) return;
+    event.preventDefault();
     pointerId = null;
     stickInput.x = 0;
     stickInput.y = 0;
