@@ -12,6 +12,22 @@ http://127.0.0.1:5174/
 
 The prototype uses Three.js from CDN, so the browser needs internet access for the first load.
 
+## Mobile install
+
+The game is configured as an installable PWA.
+
+Android:
+
+1. Open the GitHub Pages link in Chrome.
+2. Tap the browser menu.
+3. Choose **Add to Home screen** or **Install app**.
+
+iPhone:
+
+1. Open the GitHub Pages link in Safari.
+2. Tap Share.
+3. Choose **Add to Home Screen**.
+
 ## Controls
 
 - Move: `WASD` or arrow keys
