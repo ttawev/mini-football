@@ -81,6 +81,10 @@ function makeVec(x = 0, z = 0) {
   return new THREE.Vector2(x, z);
 }
 
+function isForcedLandscapeMode() {
+  return window.innerWidth < window.innerHeight && window.innerWidth <= 760;
+}
+
 function addBox(width, height, depth, colorMaterial, x, y, z) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), colorMaterial);
   mesh.position.set(x, y, z);
@@ -257,8 +261,13 @@ function updateInputFromKeys() {
 
   const useKeyboard = Math.hypot(keyboardInput.x, keyboardInput.y) > 0;
   const source = useKeyboard ? keyboardInput : stickInput;
-  input.x = source.y;
-  input.y = source.x;
+  if (isForcedLandscapeMode()) {
+    input.x = -source.x;
+    input.y = source.y;
+  } else {
+    input.x = source.y;
+    input.y = source.x;
+  }
 }
 
 function updateSelectedPlayer() {
@@ -590,7 +599,7 @@ function updateHud(dt) {
 function resize() {
   const width = window.innerWidth;
   const height = window.innerHeight;
-  const forceLandscape = width < height && width <= 760;
+  const forceLandscape = isForcedLandscapeMode();
   const renderWidth = forceLandscape ? height : width;
   const renderHeight = forceLandscape ? width : height;
   renderer.setSize(renderWidth, renderHeight, false);
