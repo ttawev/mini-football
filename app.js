@@ -460,16 +460,19 @@ function getScoringTeamForGoalY(goalY) {
 }
 
 function checkGoal(previousPos = null) {
-  const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
+  const inGoalMouth = Math.abs(ball.pos.x) <= FIELD.goalWidth / 2;
   if (previousPos) {
     const topGoalLine = FIELD.length / 2;
     const bottomGoalLine = -FIELD.length / 2;
-    const crossedTop = previousPos.y <= topGoalLine && ball.pos.y >= topGoalLine;
-    const crossedBottom = previousPos.y >= bottomGoalLine && ball.pos.y <= bottomGoalLine;
+    const topScoringY = topGoalLine - BALL_RADIUS;
+    const bottomScoringY = bottomGoalLine + BALL_RADIUS;
+    const crossedTop = previousPos.y <= topScoringY && ball.pos.y >= topScoringY;
+    const crossedBottom = previousPos.y >= bottomScoringY && ball.pos.y <= bottomScoringY;
 
     if (crossedTop || crossedBottom) {
+      const scoringY = crossedTop ? topScoringY : bottomScoringY;
       const goalLine = crossedTop ? topGoalLine : bottomGoalLine;
-      const progress = (goalLine - previousPos.y) / (ball.pos.y - previousPos.y || 1);
+      const progress = (scoringY - previousPos.y) / (ball.pos.y - previousPos.y || 1);
       const crossingX = previousPos.x + (ball.pos.x - previousPos.x) * progress;
       if (Math.abs(crossingX) < FIELD.goalWidth / 2) {
         scoreGoal(getScoringTeamForGoalY(goalLine));
@@ -478,11 +481,11 @@ function checkGoal(previousPos = null) {
     }
   }
 
-  if (ball.pos.y <= -FIELD.length / 2 && inGoalMouth) {
+  if (ball.pos.y <= -FIELD.length / 2 + BALL_RADIUS && inGoalMouth) {
     scoreGoal(getScoringTeamForGoalY(-FIELD.length / 2));
     return true;
   }
-  if (ball.pos.y >= FIELD.length / 2 && inGoalMouth) {
+  if (ball.pos.y >= FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
     scoreGoal(getScoringTeamForGoalY(FIELD.length / 2));
     return true;
   }

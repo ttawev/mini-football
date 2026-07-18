@@ -1,4 +1,4 @@
-const CACHE_NAME = "miniball-pwa-v8";
+const CACHE_NAME = "miniball-pwa-v9";
 const ASSETS = [
   "./",
   "./index.html",
