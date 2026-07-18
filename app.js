@@ -17,6 +17,7 @@ const BALL_RADIUS = 0.34;
 const MATCH_SECONDS = 120;
 const CAMERA_Y = 36;
 const CAMERA_Z = -28;
+const CAMERA_X = 0;
 
 const keys = new Set();
 const input = { x: 0, y: 0, kick: false };
@@ -38,8 +39,8 @@ scene.background = new THREE.Color(0x90bed6);
 scene.fog = new THREE.Fog(0x90bed6, 46, 82);
 
 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
-camera.up.set(1, 0, 0);
-camera.position.set(0, CAMERA_Y, CAMERA_Z);
+camera.up.set(0, 1, 0);
+camera.position.set(CAMERA_X, CAMERA_Y, CAMERA_Z);
 camera.lookAt(0, 0, 0);
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0x476b5a, 2.3);
@@ -86,22 +87,26 @@ function addBox(width, height, depth, colorMaterial, x, y, z) {
   return mesh;
 }
 
+function addFieldBox(width, height, depth, colorMaterial, x, y, z) {
+  return addBox(depth, height, width, colorMaterial, z, y, x);
+}
+
 function createField() {
   for (let i = 0; i < 8; i += 1) {
     const stripe = new THREE.Mesh(
-      new THREE.BoxGeometry(FIELD.width, 0.12, FIELD.length / 8),
+      new THREE.BoxGeometry(FIELD.length / 8, 0.12, FIELD.width),
       i % 2 === 0 ? materials.turf : materials.turfAlt,
     );
-    stripe.position.z = -FIELD.length / 2 + FIELD.length / 16 + (FIELD.length / 8) * i;
+    stripe.position.x = -FIELD.length / 2 + FIELD.length / 16 + (FIELD.length / 8) * i;
     stripe.receiveShadow = true;
     scene.add(stripe);
   }
 
-  addBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.09, 0);
-  addBox(0.12, 0.08, FIELD.length, materials.line, -FIELD.width / 2, 0.1, 0);
-  addBox(0.12, 0.08, FIELD.length, materials.line, FIELD.width / 2, 0.1, 0);
-  addBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.1, -FIELD.length / 2);
-  addBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.1, FIELD.length / 2);
+  addFieldBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.09, 0);
+  addFieldBox(0.12, 0.08, FIELD.length, materials.line, -FIELD.width / 2, 0.1, 0);
+  addFieldBox(0.12, 0.08, FIELD.length, materials.line, FIELD.width / 2, 0.1, 0);
+  addFieldBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.1, -FIELD.length / 2);
+  addFieldBox(FIELD.width, 0.08, 0.12, materials.line, 0, 0.1, FIELD.length / 2);
 
   const circle = new THREE.Mesh(
     new THREE.RingGeometry(3.8, 3.92, 80).rotateX(-Math.PI / 2),
@@ -110,20 +115,20 @@ function createField() {
   circle.position.y = 0.13;
   scene.add(circle);
 
-  addBox(6, 0.08, 0.12, materials.line, -FIELD.width / 2 + 3, 0.13, -FIELD.length / 2 + 7);
-  addBox(6, 0.08, 0.12, materials.line, FIELD.width / 2 - 3, 0.13, -FIELD.length / 2 + 7);
-  addBox(6, 0.08, 0.12, materials.line, -FIELD.width / 2 + 3, 0.13, FIELD.length / 2 - 7);
-  addBox(6, 0.08, 0.12, materials.line, FIELD.width / 2 - 3, 0.13, FIELD.length / 2 - 7);
-  addBox(0.12, 0.08, 14, materials.line, -FIELD.width / 2 + 6, 0.13, -FIELD.length / 2 + 7);
-  addBox(0.12, 0.08, 14, materials.line, FIELD.width / 2 - 6, 0.13, -FIELD.length / 2 + 7);
-  addBox(0.12, 0.08, 14, materials.line, -FIELD.width / 2 + 6, 0.13, FIELD.length / 2 - 7);
-  addBox(0.12, 0.08, 14, materials.line, FIELD.width / 2 - 6, 0.13, FIELD.length / 2 - 7);
+  addFieldBox(6, 0.08, 0.12, materials.line, -FIELD.width / 2 + 3, 0.13, -FIELD.length / 2 + 7);
+  addFieldBox(6, 0.08, 0.12, materials.line, FIELD.width / 2 - 3, 0.13, -FIELD.length / 2 + 7);
+  addFieldBox(6, 0.08, 0.12, materials.line, -FIELD.width / 2 + 3, 0.13, FIELD.length / 2 - 7);
+  addFieldBox(6, 0.08, 0.12, materials.line, FIELD.width / 2 - 3, 0.13, FIELD.length / 2 - 7);
+  addFieldBox(0.12, 0.08, 14, materials.line, -FIELD.width / 2 + 6, 0.13, -FIELD.length / 2 + 7);
+  addFieldBox(0.12, 0.08, 14, materials.line, FIELD.width / 2 - 6, 0.13, -FIELD.length / 2 + 7);
+  addFieldBox(0.12, 0.08, 14, materials.line, -FIELD.width / 2 + 6, 0.13, FIELD.length / 2 - 7);
+  addFieldBox(0.12, 0.08, 14, materials.line, FIELD.width / 2 - 6, 0.13, FIELD.length / 2 - 7);
 
   createGoal(0, -FIELD.length / 2 - FIELD.goalDepth / 2, 1);
   createGoal(0, FIELD.length / 2 + FIELD.goalDepth / 2, -1);
 
   const outside = new THREE.Mesh(
-    new THREE.BoxGeometry(FIELD.width + 10, 0.05, FIELD.length + 14),
+    new THREE.BoxGeometry(FIELD.length + 14, 0.05, FIELD.width + 10),
     new THREE.MeshStandardMaterial({ color: 0x243641, roughness: 0.85 }),
   );
   outside.position.y = -0.08;
@@ -133,10 +138,10 @@ function createField() {
 
 function createGoal(x, z, direction) {
   const backZ = z + direction * FIELD.goalDepth / 2;
-  addBox(FIELD.goalWidth, 1.2, 0.14, materials.goal, x, 0.7, backZ);
-  addBox(0.14, 1.2, FIELD.goalDepth, materials.goal, -FIELD.goalWidth / 2, 0.7, z);
-  addBox(0.14, 1.2, FIELD.goalDepth, materials.goal, FIELD.goalWidth / 2, 0.7, z);
-  addBox(FIELD.goalWidth, 0.14, FIELD.goalDepth, materials.goal, x, 1.35, z);
+  addFieldBox(FIELD.goalWidth, 1.2, 0.14, materials.goal, x, 0.7, backZ);
+  addFieldBox(0.14, 1.2, FIELD.goalDepth, materials.goal, -FIELD.goalWidth / 2, 0.7, z);
+  addFieldBox(0.14, 1.2, FIELD.goalDepth, materials.goal, FIELD.goalWidth / 2, 0.7, z);
+  addFieldBox(FIELD.goalWidth, 0.14, FIELD.goalDepth, materials.goal, x, 1.35, z);
 }
 
 function createPlayerMesh(team, isKeeper) {
@@ -553,15 +558,15 @@ function resolveBall(dt) {
 
 function updateMeshes() {
   players.forEach((player) => {
-    player.mesh.position.set(player.pos.x, 0, player.pos.y);
+    player.mesh.position.set(player.pos.y, 0, player.pos.x);
     if (player.vel.lengthSq() > 0.2) {
-      player.mesh.rotation.y = Math.atan2(player.vel.x, player.vel.y);
+      player.mesh.rotation.y = Math.atan2(player.vel.y, player.vel.x);
     }
   });
 
-  ball.mesh.position.set(ball.pos.x, 0, ball.pos.y);
-  ball.mesh.children[0].rotation.x += ball.vel.y * 0.02;
-  ball.mesh.children[0].rotation.z -= ball.vel.x * 0.02;
+  ball.mesh.position.set(ball.pos.y, 0, ball.pos.x);
+  ball.mesh.children[0].rotation.x += ball.vel.x * 0.02;
+  ball.mesh.children[0].rotation.z -= ball.vel.y * 0.02;
 }
 
 function updateHud(dt) {
@@ -587,8 +592,8 @@ function resize() {
   const renderHeight = forceLandscape ? width : height;
   renderer.setSize(renderWidth, renderHeight, false);
   camera.aspect = renderWidth / renderHeight;
-  camera.up.set(1, 0, 0);
-  camera.position.set(0, renderHeight < 520 ? 34 : CAMERA_Y, renderHeight < 520 ? -26 : CAMERA_Z);
+  camera.up.set(0, 1, 0);
+  camera.position.set(CAMERA_X, renderHeight < 520 ? 34 : CAMERA_Y, renderHeight < 520 ? -26 : CAMERA_Z);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }
