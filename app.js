@@ -456,7 +456,7 @@ function scoreGoal(team) {
 }
 
 function getScoringTeamForGoalY(goalY) {
-  return goalY > 0 ? TEAM_HOME : TEAM_AWAY;
+  return goalY > 0 ? TEAM_AWAY : TEAM_HOME;
 }
 
 function checkGoal(previousPos = null) {

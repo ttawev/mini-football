@@ -347,6 +347,7 @@ button {
   }
 
   .hud {
+    top: 0;
     min-width: min(360px, calc(100vh - 24px));
   }
 
