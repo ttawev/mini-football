@@ -255,7 +255,7 @@ function updateInputFromKeys() {
   const useKeyboard = Math.hypot(keyboardInput.x, keyboardInput.y) > 0;
   const source = useKeyboard ? keyboardInput : stickInput;
   input.x = source.y;
-  input.y = source.x;
+  input.y = -source.x;
 }
 
 function updateSelectedPlayer() {
