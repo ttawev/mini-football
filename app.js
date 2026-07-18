@@ -455,6 +455,10 @@ function scoreGoal(team) {
   }
 }
 
+function getScoringTeamForGoalY(goalY) {
+  return goalY > 0 ? TEAM_HOME : TEAM_AWAY;
+}
+
 function checkGoal(previousPos = null) {
   const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
   if (previousPos) {
@@ -468,18 +472,18 @@ function checkGoal(previousPos = null) {
       const progress = (goalLine - previousPos.y) / (ball.pos.y - previousPos.y || 1);
       const crossingX = previousPos.x + (ball.pos.x - previousPos.x) * progress;
       if (Math.abs(crossingX) < FIELD.goalWidth / 2) {
-        scoreGoal(crossedTop ? TEAM_HOME : TEAM_AWAY);
+        scoreGoal(getScoringTeamForGoalY(goalLine));
         return true;
       }
     }
   }
 
-  if (ball.pos.y < -FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
-    scoreGoal(TEAM_AWAY);
+  if (ball.pos.y <= -FIELD.length / 2 && inGoalMouth) {
+    scoreGoal(getScoringTeamForGoalY(-FIELD.length / 2));
     return true;
   }
-  if (ball.pos.y > FIELD.length / 2 + BALL_RADIUS && inGoalMouth) {
-    scoreGoal(TEAM_HOME);
+  if (ball.pos.y >= FIELD.length / 2 && inGoalMouth) {
+    scoreGoal(getScoringTeamForGoalY(FIELD.length / 2));
     return true;
   }
   return false;
@@ -517,8 +521,10 @@ function resolvePlayers(dt) {
 }
 
 function resolveBall(dt) {
+  const previousBallPos = ball.pos.clone();
+
   if (updatePossession(dt)) {
-    if (checkGoal()) return;
+    if (checkGoal(previousBallPos)) return;
     const owner = players[ball.ownerIndex];
     if (owner && ball.ownerIndex !== selectedIndex && owner.touchCooldown <= 0) {
       opponentKick(owner);
@@ -526,7 +532,6 @@ function resolveBall(dt) {
     return;
   }
 
-  const previousBallPos = ball.pos.clone();
   ball.pos.addScaledVector(ball.vel, dt);
   ball.vel.multiplyScalar(Math.pow(0.18, dt));
 
