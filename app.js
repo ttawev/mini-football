@@ -14,6 +14,10 @@ const installHint = document.querySelector("#installHint");
 const FIELD = { width: 30, length: 46, goalWidth: 8, goalDepth: 2.8 };
 const TEAM_HOME = "home";
 const TEAM_AWAY = "away";
+const DEFENDED_GOAL_Y = {
+  [TEAM_HOME]: -FIELD.length / 2,
+  [TEAM_AWAY]: FIELD.length / 2,
+};
 const PLAYER_RADIUS = 0.62;
 const BALL_RADIUS = 0.34;
 const MATCH_SECONDS = 120;
@@ -320,7 +324,7 @@ function getClosestPlayerIndex(team, includeKeeper = false) {
 }
 
 function getTeamAttackDirection(team) {
-  return team === TEAM_HOME ? 1 : -1;
+  return -Math.sign(DEFENDED_GOAL_Y[team]);
 }
 
 function getGoalCenter(team) {
@@ -527,7 +531,7 @@ function scoreGoal(team) {
 }
 
 function getScoringTeamForGoalY(goalY) {
-  return goalY > 0 ? TEAM_HOME : TEAM_AWAY;
+  return goalY === DEFENDED_GOAL_Y[TEAM_AWAY] ? TEAM_HOME : TEAM_AWAY;
 }
 
 function checkGoal(previousPos = null) {
@@ -615,6 +619,12 @@ function resolveBall(dt) {
   }
 
   if (checkGoal(previousBallPos)) return;
+
+  if (Math.abs(ball.pos.y) > FIELD.length / 2 - BALL_RADIUS) {
+    ball.pos.y = clamp(ball.pos.y, -FIELD.length / 2 + BALL_RADIUS, FIELD.length / 2 - BALL_RADIUS);
+    ball.vel.y *= -0.72;
+    return;
+  }
 
   const inGoalMouth = Math.abs(ball.pos.x) < FIELD.goalWidth / 2;
   if (ball.pos.y < -FIELD.length / 2 - BALL_RADIUS && inGoalMouth) {
