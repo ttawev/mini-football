@@ -8,6 +8,8 @@ const stick = document.querySelector("#stick");
 const stickKnob = document.querySelector("#stickKnob");
 const kickButton = document.querySelector("#kickButton");
 const switchButton = document.querySelector("#switchButton");
+const installButton = document.querySelector("#installButton");
+const installHint = document.querySelector("#installHint");
 
 const FIELD = { width: 30, length: 46, goalWidth: 8, goalDepth: 2.8 };
 const TEAM_HOME = "home";
@@ -28,6 +30,7 @@ let selectedIndex = 2;
 let matchClock = MATCH_SECONDS;
 let lastTimestamp = performance.now();
 let statusTimer = 2;
+let deferredInstallPrompt = null;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -657,6 +660,55 @@ function setupStick() {
   stick.addEventListener("pointercancel", release);
 }
 
+function showInstallHint(message) {
+  if (!installHint) return;
+  installHint.textContent = message;
+  installHint.classList.add("is-visible");
+  window.setTimeout(() => {
+    installHint.classList.remove("is-visible");
+  }, 5200);
+}
+
+function setupInstallPrompt() {
+  if (!installButton) return;
+
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  if (isStandalone) {
+    installButton.classList.add("is-installed");
+    return;
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    installButton.textContent = "Install";
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    installButton.classList.add("is-installed");
+  });
+
+  installButton.addEventListener("pointerdown", async () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      return;
+    }
+
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    showInstallHint(
+      isIos
+        ? "Safari: Share -> Add to Home Screen"
+        : "Chrome: menu -> Install app or Add to Home screen",
+    );
+  });
+}
+
 window.addEventListener("resize", resize);
 window.addEventListener("keydown", (event) => {
   keys.add(event.key.toLowerCase());
@@ -676,6 +728,7 @@ kickButton.addEventListener("pointerdown", () => {
 switchButton.addEventListener("pointerdown", switchPlayer);
 
 setupStick();
+setupInstallPrompt();
 resize();
 updateSelectedPlayer();
 resetPositions();

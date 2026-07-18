@@ -58,7 +58,9 @@ button {
 .hud,
 .controls,
 .help-panel,
-.rotate-prompt {
+.rotate-prompt,
+.install-button,
+.install-hint {
   position: fixed;
   z-index: 5;
   user-select: none;
@@ -194,6 +196,43 @@ button {
   font-weight: 800;
 }
 
+.install-button {
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  min-width: 92px;
+  height: 42px;
+  padding: 0 14px;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(180deg, #3ee48f, #16784b);
+  color: #06130c;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.install-button.is-installed {
+  display: none;
+}
+
+.install-hint {
+  top: calc(max(14px, env(safe-area-inset-top)) + 50px);
+  right: max(14px, env(safe-area-inset-right));
+  display: none;
+  max-width: min(320px, calc(100vw - 28px));
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 12, 18, 0.88);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.install-hint.is-visible {
+  display: block;
+}
+
 .rotate-prompt {
   inset: 0;
   z-index: 20;
@@ -225,6 +264,22 @@ button {
 @media (max-width: 680px) {
   .help-panel {
     display: none;
+  }
+
+  .install-button {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    min-width: 78px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+
+  .install-hint {
+    top: calc(max(8px, env(safe-area-inset-top)) + 42px);
+    right: max(8px, env(safe-area-inset-right));
+    max-width: min(280px, calc(100vw - 16px));
+    font-size: 0.7rem;
   }
 
   .hud {
