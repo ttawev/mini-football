@@ -319,6 +319,50 @@ function getClosestPlayerIndex(team, includeKeeper = false) {
   return bestIndex;
 }
 
+function getTeamAttackDirection(team) {
+  return team === TEAM_HOME ? 1 : -1;
+}
+
+function getGoalCenter(team) {
+  return makeVec(0, (FIELD.length / 2) * getTeamAttackDirection(team));
+}
+
+function getBallCarrier() {
+  return ball.ownerIndex === null ? null : players[ball.ownerIndex];
+}
+
+function getNearestOpponentDistance(player) {
+  let bestDistance = Infinity;
+  players.forEach((opponent) => {
+    if (opponent.team === player.team) return;
+    bestDistance = Math.min(bestDistance, player.pos.distanceTo(opponent.pos));
+  });
+  return bestDistance;
+}
+
+function getBestPassTarget(player) {
+  const attackDirection = getTeamAttackDirection(player.team);
+  let bestTarget = null;
+  let bestScore = -Infinity;
+
+  players.forEach((teammate) => {
+    if (teammate === player || teammate.team !== player.team || teammate.role === "keeper") return;
+
+    const forwardGain = (teammate.pos.y - player.pos.y) * attackDirection;
+    const distance = player.pos.distanceTo(teammate.pos);
+    const space = getNearestOpponentDistance(teammate);
+    const lanePenalty = Math.abs(teammate.pos.x - player.pos.x) * 0.18;
+    const score = forwardGain * 1.4 + space * 0.9 - distance * 0.35 - lanePenalty;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestTarget = teammate;
+    }
+  });
+
+  return bestScore > 1.4 ? bestTarget : null;
+}
+
 function updatePlayerAI(player, index, dt) {
   if (index === selectedIndex) return;
 
@@ -326,21 +370,45 @@ function updatePlayerAI(player, index, dt) {
 
   const target = player.home.clone();
   const distanceToBall = player.pos.distanceTo(ball.pos);
-  const attackDirection = player.team === TEAM_HOME ? 1 : -1;
+  const attackDirection = getTeamAttackDirection(player.team);
+  const carrier = getBallCarrier();
+  const teamHasBall = carrier?.team === player.team;
+  const opponentHasBall = carrier && carrier.team !== player.team;
   const closestIndex = getClosestPlayerIndex(player.team);
   const isClosest = closestIndex === index;
-  const ballInReachZone = player.team === TEAM_HOME ? ball.pos.y > -17 : ball.pos.y < 17;
-  const canChase = player.role !== "keeper" && isClosest && ballInReachZone && distanceToBall < 14;
+  const ballInReachZone = player.team === TEAM_HOME ? ball.pos.y > -19 : ball.pos.y < 19;
+  const canChase = player.role !== "keeper" && isClosest && !teamHasBall && ballInReachZone && distanceToBall < 16;
+  const predictedBall = ball.pos.clone().add(ball.vel.clone().multiplyScalar(opponentHasBall ? 0.08 : 0.24));
 
   if (player.role === "keeper") {
     target.x = clamp(ball.pos.x * 0.45, -FIELD.goalWidth / 2 + 0.7, FIELD.goalWidth / 2 - 0.7);
     target.y = player.team === TEAM_HOME ? -20.2 : 20.2;
-    if (distanceToBall < 5.5 && Math.sign(ball.pos.y) === Math.sign(player.home.y)) {
-      target.y = clamp(ball.pos.y - attackDirection * 1.2, -21, 21);
+    if (distanceToBall < 6.5 && Math.sign(ball.pos.y) === Math.sign(player.home.y)) {
+      target.copy(predictedBall);
+      target.y = clamp(target.y - attackDirection * 1.1, -21, 21);
+      target.x = clamp(target.x, -FIELD.goalWidth / 2 + 0.55, FIELD.goalWidth / 2 - 0.55);
     }
   } else if (canChase) {
-    target.copy(ball.pos).add(ball.vel.clone().multiplyScalar(0.12));
-    target.y -= attackDirection * 0.75;
+    target.copy(predictedBall);
+    target.y -= attackDirection * (opponentHasBall ? 1.45 : 0.75);
+  } else if (teamHasBall) {
+    const roleLane = player.role === "defender" ? -9 * attackDirection : player.role === "mid" ? 1.5 * attackDirection : 10.5 * attackDirection;
+    const widthBias = player.home.x >= 0 ? 1 : -1;
+    target.x = clamp(carrier.pos.x * 0.35 + widthBias * (player.role === "mid" ? 4.5 : 6.5), -FIELD.width / 2 + 2.4, FIELD.width / 2 - 2.4);
+    target.y = clamp(Math.max(carrier.pos.y * attackDirection + 5.5, roleLane * attackDirection) * attackDirection, -FIELD.length / 2 + 3, FIELD.length / 2 - 3);
+    if (player.role === "defender") {
+      target.y = clamp(carrier.pos.y - attackDirection * 8, -FIELD.length / 2 + 4, FIELD.length / 2 - 4);
+    }
+  } else if (opponentHasBall) {
+    const goalSide = player.team === TEAM_HOME ? -1 : 1;
+    const dangerY = FIELD.length / 2 * goalSide;
+    const betweenGoalAndCarrier = makeVec(carrier.pos.x * 0.42, (carrier.pos.y + dangerY) * 0.5);
+    if (player.role === "defender" || distanceToBall < 10) {
+      target.copy(betweenGoalAndCarrier);
+    } else {
+      const markOffset = player.home.x >= 0 ? 2.4 : -2.4;
+      target.set(clamp(carrier.pos.x + markOffset, -FIELD.width / 2 + 2, FIELD.width / 2 - 2), carrier.pos.y - attackDirection * 4.5);
+    }
   } else {
     const roleLane = player.role === "defender" ? -6 * attackDirection : player.role === "mid" ? 0 : 7 * attackDirection;
     target.x = player.home.x * 0.55 + clamp(ball.pos.x * 0.32, -3.6, 3.6);
@@ -351,7 +419,7 @@ function updatePlayerAI(player, index, dt) {
     }
   }
 
-  steerToward(player, target, canChase ? 0.92 : 0.58, dt);
+  steerToward(player, target, canChase || opponentHasBall ? 0.96 : teamHasBall ? 0.72 : 0.58, dt);
 }
 
 function updateControlledPlayer(dt) {
@@ -379,20 +447,23 @@ function tryKick() {
 }
 
 function opponentKick(player) {
-  const attackDirection = player.team === TEAM_HOME ? 1 : -1;
-  const teammates = players.filter((teammate) => teammate.team === player.team && teammate !== player && teammate.role !== "keeper");
-  const passTarget = teammates
-    .filter((teammate) => teammate.pos.y * attackDirection > player.pos.y * attackDirection - 2)
-    .sort((a, b) => b.pos.y * attackDirection - a.pos.y * attackDirection)[0];
-  const shouldPass = passTarget && Math.random() < 0.42 && Math.abs(player.pos.x) > 3;
-  const target = shouldPass ? passTarget.pos.clone() : makeVec(clamp(-player.pos.x * 0.25, -2.8, 2.8), (FIELD.length / 2) * attackDirection);
+  const attackDirection = getTeamAttackDirection(player.team);
+  const goalCenter = getGoalCenter(player.team);
+  const distanceToGoal = player.pos.distanceTo(goalCenter);
+  const pressure = getNearestOpponentDistance(player);
+  const passTarget = getBestPassTarget(player);
+  const shootingLane = Math.abs(player.pos.x) < FIELD.goalWidth / 2 + 2.6 || distanceToGoal < 13;
+  const shouldShoot = shootingLane && (distanceToGoal < 18 || pressure > 3.2 || !passTarget);
+  const shouldPass = passTarget && !shouldShoot && (pressure < 4.8 || Math.random() < 0.66);
+  const carryTarget = makeVec(clamp(player.pos.x * 0.45, -3.2, 3.2), (FIELD.length / 2 - 0.6) * attackDirection);
+  const target = shouldPass ? passTarget.pos.clone() : shouldShoot ? goalCenter : carryTarget;
   const direction = target.sub(ball.pos).normalize();
   ball.ownerIndex = null;
   ball.lastOwnerIndex = players.indexOf(player);
   ball.releaseCooldown = 0.18;
   ball.pos.copy(player.pos).add(direction.clone().multiplyScalar(PLAYER_RADIUS + BALL_RADIUS + 0.22));
-  ball.vel.copy(direction.multiplyScalar(shouldPass ? 13.5 : 18));
-  player.touchCooldown = 0.42;
+  ball.vel.copy(direction.multiplyScalar(shouldPass ? 14.5 : shouldShoot ? 21 : 12));
+  player.touchCooldown = shouldPass ? 0.34 : 0.5;
 }
 
 function getCarryPosition(player) {
