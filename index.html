@@ -11,7 +11,7 @@
     <title>Mini Football 4v4 Prototype</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <link rel="stylesheet" href="styles.css?v=edge-hud-goals-1" />
+    <link rel="stylesheet" href="styles.css?v=clear-goal-sides-1" />
   </head>
   <body>
     <main class="game-shell">
@@ -45,6 +45,9 @@
         <span>Q - смена игрока</span>
       </aside>
 
+      <div class="goal-label goal-label-home">Ворота синих</div>
+      <div class="goal-label goal-label-away">Ворота красных</div>
+
       <button class="install-button" id="installButton" type="button">Install</button>
       <div class="install-hint" id="installHint" role="status" aria-live="polite"></div>
 
@@ -56,7 +59,7 @@
       </div>
     </main>
 
-    <script type="module" src="app.js?v=smarter-bots-1"></script>
+    <script type="module" src="app.js?v=clear-goal-sides-1"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

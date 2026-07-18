@@ -59,6 +59,7 @@ button {
 .controls,
 .help-panel,
 .rotate-prompt,
+.goal-label,
 .install-button,
 .install-hint {
   position: fixed;
@@ -126,6 +127,32 @@ button {
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 800;
+}
+
+.goal-label {
+  top: 50%;
+  z-index: 4;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 12, 18, 0.58);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transform: translateY(-50%) rotate(-90deg);
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.goal-label-home {
+  left: max(4px, env(safe-area-inset-left));
+  color: var(--home);
+}
+
+.goal-label-away {
+  right: max(4px, env(safe-area-inset-right));
+  color: var(--away);
 }
 
 .controls {
@@ -353,5 +380,13 @@ button {
 
   .controls {
     inset: auto max(14px, env(safe-area-inset-bottom)) max(36px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-top));
+  }
+
+  .goal-label-home {
+    left: 4px;
+  }
+
+  .goal-label-away {
+    right: 4px;
   }
 }

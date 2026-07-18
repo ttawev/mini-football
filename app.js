@@ -212,7 +212,7 @@ const players = [
 players.forEach((player, index) => {
   player.aiSeed = index * 1.71;
   player.touchCooldown = 0;
-  player.facing = makeVec(0, player.team === TEAM_HOME ? 1 : -1);
+  player.facing = makeVec(0, getTeamAttackDirection(player.team));
 });
 
 const ball = {
@@ -233,14 +233,14 @@ function resetPositions(scoredBy = null) {
   players.forEach((player) => {
     player.pos.copy(player.home);
     player.vel.set(0, 0);
-    player.facing.set(0, player.team === TEAM_HOME ? 1 : -1);
+    player.facing.set(0, getTeamAttackDirection(player.team));
     player.touchCooldown = 0;
   });
   ball.ownerIndex = null;
   ball.lastOwnerIndex = null;
   ball.releaseCooldown = 0;
   ball.pos.set(0, 0);
-  ball.vel.set(0, scoredBy === TEAM_HOME ? -4 : scoredBy === TEAM_AWAY ? 4 : 0);
+  ball.vel.set(0, scoredBy ? -getTeamAttackDirection(scoredBy) * 4 : 0);
 }
 
 function updateInputFromKeys() {
@@ -527,7 +527,7 @@ function scoreGoal(team) {
 }
 
 function getScoringTeamForGoalY(goalY) {
-  return goalY > 0 ? TEAM_AWAY : TEAM_HOME;
+  return goalY > 0 ? TEAM_HOME : TEAM_AWAY;
 }
 
 function checkGoal(previousPos = null) {
